@@ -1,20 +1,18 @@
-import type { ReactElement } from 'react';
-import { requestMeasure, requestMutation } from '../fasterdom/fasterdom';
+import type { ReactElement } from "react";
+import { requestMeasure, requestMutation } from "../fasterdom/fasterdom";
 
-import { DEBUG, DEBUG_MORE } from '../../config';
-import { throttleWith } from '../../util/schedulers';
-import { orderBy } from '../../util/iteratees';
-import { getUnequalProps } from '../../util/arePropsShallowEqual';
-import { incrementOverlayCounter } from '../../util/debugOverlay';
-import { isSignal } from '../../util/signals';
-import safeExec from '../../util/safeExec';
+import { DEBUG, DEBUG_MORE } from "../../config";
+import { throttleWith } from "../../util/schedulers";
+import { orderBy } from "../../util/iteratees";
+import { getUnequalProps } from "../../util/arePropsShallowEqual";
+import { incrementOverlayCounter } from "../../util/debugOverlay";
+import { isSignal } from "../../util/signals";
+import safeExec from "../../util/safeExec";
 
 export type Props = AnyLiteral;
 export type FC<P extends Props = any> = (props: P) => any;
 // eslint-disable-next-line @typescript-eslint/naming-convention
-export type FC_withDebug =
-  FC
-  & { DEBUG_contentComponentName?: string };
+export type FC_withDebug = FC & { DEBUG_contentComponentName?: string };
 
 export enum VirtualElementTypesEnum {
   Empty,
@@ -103,60 +101,80 @@ interface ComponentInstance {
 }
 
 export type VirtualElement =
-  VirtualElementEmpty
+  | VirtualElementEmpty
   | VirtualElementText
   | VirtualElementTag
   | VirtualElementComponent
   | VirtualElementFragment;
 export type VirtualElementParent =
-  VirtualElementTag
+  | VirtualElementTag
   | VirtualElementComponent
   | VirtualElementFragment;
 export type VirtualElementChildren = VirtualElement[];
-export type VirtualElementReal = Exclude<VirtualElement, VirtualElementComponent | VirtualElementFragment>;
+export type VirtualElementReal = Exclude<
+  VirtualElement,
+  VirtualElementComponent | VirtualElementFragment
+>;
 
 // Compatibility with JSX types
-export type TeactNode =
-  ReactElement
-  | string
-  | number
-  | boolean
-  | TeactNode[];
+export type TeactNode = ReactElement | string | number | boolean | TeactNode[];
 
-type Effect = () => (NoneToVoidFunction | void);
+type Effect = () => NoneToVoidFunction | void;
 type EffectCleanup = NoneToVoidFunction;
 
-const Fragment = Symbol('Fragment');
+const Fragment = Symbol("Fragment");
 
 const DEBUG_RENDER_THRESHOLD = 7;
 const DEBUG_EFFECT_THRESHOLD = 7;
-const DEBUG_SILENT_RENDERS_FOR = new Set(['TeactMemoWrapper', 'TeactNContainer', 'Button', 'ListItem', 'MenuItem']);
+const DEBUG_SILENT_RENDERS_FOR = new Set([
+  "TeactMemoWrapper",
+  "TeactNContainer",
+  "Button",
+  "ListItem",
+  "MenuItem",
+]);
 
 let lastComponentId = 0;
 let renderingInstance: ComponentInstance;
 
-export function isEmptyElement($element: VirtualElement): $element is VirtualElementEmpty {
+export function isEmptyElement(
+  $element: VirtualElement
+): $element is VirtualElementEmpty {
   return $element.type === VirtualElementTypesEnum.Empty;
 }
 
-export function isTextElement($element: VirtualElement): $element is VirtualElementText {
+export function isTextElement(
+  $element: VirtualElement
+): $element is VirtualElementText {
   return $element.type === VirtualElementTypesEnum.Text;
 }
 
-export function isTagElement($element: VirtualElement): $element is VirtualElementTag {
+export function isTagElement(
+  $element: VirtualElement
+): $element is VirtualElementTag {
   return $element.type === VirtualElementTypesEnum.Tag;
 }
 
-export function isComponentElement($element: VirtualElement): $element is VirtualElementComponent {
+export function isComponentElement(
+  $element: VirtualElement
+): $element is VirtualElementComponent {
   return $element.type === VirtualElementTypesEnum.Component;
 }
 
-export function isFragmentElement($element: VirtualElement): $element is VirtualElementFragment {
+export function isFragmentElement(
+  $element: VirtualElement
+): $element is VirtualElementFragment {
   return $element.type === VirtualElementTypesEnum.Fragment;
 }
 
-export function isParentElement($element: VirtualElement): $element is VirtualElementParent {
-  return isTagElement($element) || isComponentElement($element) || isFragmentElement($element);
+export function isParentElement(
+  $element: VirtualElement
+): $element is VirtualElementParent {
+  return (
+    isTagElement($element) ||
+    isComponentElement($element) ||
+    isFragmentElement($element)
+  );
 }
 
 function createElement(
@@ -168,7 +186,7 @@ function createElement(
 
   if (source === Fragment) {
     return buildFragmentElement(children);
-  } else if (typeof source === 'function') {
+  } else if (typeof source === "function") {
     return createComponentInstance(source, props || {}, children);
   } else {
     return buildTagElement(source, props || {}, children);
@@ -182,7 +200,11 @@ function buildFragmentElement(children: any[]): VirtualElementFragment {
   };
 }
 
-function createComponentInstance(Component: FC, props: Props, children: any[]): VirtualElementComponent {
+function createComponentInstance(
+  Component: FC,
+  props: Props,
+  children: any[]
+): VirtualElementComponent {
   let parsedChildren: any | any[] | undefined;
   if (children.length === 0) {
     parsedChildren = undefined;
@@ -229,7 +251,7 @@ function createComponentInstance(Component: FC, props: Props, children: any[]): 
 
 function buildComponentElement(
   componentInstance: ComponentInstance,
-  children: VirtualElementChildren = [],
+  children: VirtualElementChildren = []
 ): VirtualElementComponent {
   return {
     type: VirtualElementTypesEnum.Component,
@@ -239,7 +261,11 @@ function buildComponentElement(
   };
 }
 
-function buildTagElement(tag: string, props: Props, children: any[]): VirtualElementTag {
+function buildTagElement(
+  tag: string,
+  props: Props,
+  children: any[]
+): VirtualElementTag {
   return {
     type: VirtualElementTypesEnum.Tag,
     tag,
@@ -296,11 +322,16 @@ function buildEmptyElement(): VirtualElementEmpty {
 }
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-const DEBUG_components: AnyLiteral = { TOTAL: { componentName: 'TOTAL', renderCount: 0 } };
+const DEBUG_components: AnyLiteral = {
+  TOTAL: { componentName: "TOTAL", renderCount: 0 },
+};
 
-document.addEventListener('dblclick', () => {
+document.addEventListener("dblclick", () => {
   // eslint-disable-next-line no-console
-  console.warn('COMPONENTS', orderBy(Object.values(DEBUG_components), 'renderCount', 'desc'));
+  console.warn(
+    "COMPONENTS",
+    orderBy(Object.values(DEBUG_components), "renderCount", "desc")
+  );
 });
 
 let instancesPendingUpdate = new Set<ComponentInstance>();
@@ -328,9 +359,9 @@ const runUpdatePassOnRaf = throttleWith(requestMeasure, () => {
   areImmediateEffectsPending = true;
 
   idsToExcludeFromUpdate = new Set();
-  const instancesToUpdate = Array
-    .from(instancesPendingUpdate)
-    .sort((a, b) => a.id - b.id);
+  const instancesToUpdate = Array.from(instancesPendingUpdate).sort(
+    (a, b) => a.id - b.id
+  );
   instancesPendingUpdate = new Set();
 
   const currentCleanups = pendingCleanups;
@@ -376,68 +407,85 @@ export function renderComponent(componentInstance: ComponentInstance) {
   const { Component, props } = componentInstance;
   let newRenderedValue: any;
 
-  safeExec(() => {
-    renderingInstance = componentInstance;
-    componentInstance.hooks.state.cursor = 0;
-    componentInstance.hooks.effects.cursor = 0;
-    componentInstance.hooks.memos.cursor = 0;
-    componentInstance.hooks.refs.cursor = 0;
+  safeExec(
+    () => {
+      renderingInstance = componentInstance;
+      componentInstance.hooks.state.cursor = 0;
+      componentInstance.hooks.effects.cursor = 0;
+      componentInstance.hooks.memos.cursor = 0;
+      componentInstance.hooks.refs.cursor = 0;
 
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    let DEBUG_startAt: number | undefined;
-    if (DEBUG) {
-      const componentName = componentInstance.name;
-      if (!DEBUG_components[componentName]) {
-        DEBUG_components[componentName] = {
-          componentName,
-          renderCount: 0,
-          renderTimes: [],
-        };
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      let DEBUG_startAt: number | undefined;
+      if (DEBUG) {
+        const componentName = componentInstance.name;
+        if (!DEBUG_components[componentName]) {
+          DEBUG_components[componentName] = {
+            componentName,
+            renderCount: 0,
+            renderTimes: [],
+          };
+        }
+
+        if (DEBUG_MORE) {
+          if (!DEBUG_SILENT_RENDERS_FOR.has(componentName)) {
+            // eslint-disable-next-line no-console
+            console.log(`[Teact] Render ${componentName}`);
+          }
+        }
+
+        DEBUG_startAt = performance.now();
       }
 
-      if (DEBUG_MORE) {
-        if (!DEBUG_SILENT_RENDERS_FOR.has(componentName)) {
+      newRenderedValue = Component(props);
+
+      if (DEBUG) {
+        const duration = performance.now() - DEBUG_startAt!;
+        const componentName = componentInstance.name;
+        if (duration > DEBUG_RENDER_THRESHOLD) {
           // eslint-disable-next-line no-console
-          console.log(`[Teact] Render ${componentName}`);
+          console.warn(
+            `[Teact] Slow component render: ${componentName}, ${Math.round(
+              duration
+            )} ms`
+          );
+        }
+        DEBUG_components[componentName].renderTimes.push(duration);
+        DEBUG_components[componentName].renderCount++;
+        DEBUG_components.TOTAL.renderCount++;
+
+        if (DEBUG_MORE) {
+          incrementOverlayCounter(`${componentName} renders`);
+          incrementOverlayCounter(`${componentName} duration`, duration);
         }
       }
+    },
+    () => {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[Teact] Error while rendering component ${componentInstance.name}`
+      );
 
-      DEBUG_startAt = performance.now();
+      newRenderedValue = componentInstance.renderedValue;
     }
+  );
 
-    newRenderedValue = Component(props);
-
-    if (DEBUG) {
-      const duration = performance.now() - DEBUG_startAt!;
-      const componentName = componentInstance.name;
-      if (duration > DEBUG_RENDER_THRESHOLD) {
-        // eslint-disable-next-line no-console
-        console.warn(`[Teact] Slow component render: ${componentName}, ${Math.round(duration)} ms`);
-      }
-      DEBUG_components[componentName].renderTimes.push(duration);
-      DEBUG_components[componentName].renderCount++;
-      DEBUG_components.TOTAL.renderCount++;
-
-      if (DEBUG_MORE) {
-        incrementOverlayCounter(`${componentName} renders`);
-        incrementOverlayCounter(`${componentName} duration`, duration);
-      }
-    }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error while rendering component ${componentInstance.name}`);
-
-    newRenderedValue = componentInstance.renderedValue;
-  });
-
-  if (componentInstance.isMounted && newRenderedValue === componentInstance.renderedValue) {
+  if (
+    componentInstance.isMounted &&
+    newRenderedValue === componentInstance.renderedValue
+  ) {
     return componentInstance.$element;
   }
 
   componentInstance.renderedValue = newRenderedValue;
 
-  const children = Array.isArray(newRenderedValue) ? newRenderedValue : [newRenderedValue];
-  componentInstance.$element = buildComponentElement(componentInstance, children);
+  const children = Array.isArray(newRenderedValue)
+    ? newRenderedValue
+    : [newRenderedValue];
+  componentInstance.$element = buildComponentElement(
+    componentInstance,
+    children
+  );
 
   return componentInstance.$element;
 }
@@ -450,11 +498,10 @@ export function hasElementChanged($old: VirtualElement, $new: VirtualElement) {
   } else if (isTextElement($old) && isTextElement($new)) {
     return $old.value !== $new.value;
   } else if (isTagElement($old) && isTagElement($new)) {
-    return ($old.tag !== $new.tag) || ($old.props.key !== $new.props.key);
+    return $old.tag !== $new.tag || $old.props.key !== $new.props.key;
   } else if (isComponentElement($old) && isComponentElement($new)) {
     return (
-      $old.componentInstance.Component !== $new.componentInstance.Component
-    ) || (
+      $old.componentInstance.Component !== $new.componentInstance.Component ||
       $old.props.key !== $new.props.key
     );
   }
@@ -544,264 +591,15 @@ function forceUpdateComponent(componentInstance: ComponentInstance) {
     componentInstance.onUpdate();
   }
 }
-
-export function useState<T>(): [T | undefined, StateHookSetter<T | undefined>];
-export function useState<T>(initial: T, debugKey?: string): [T, StateHookSetter<T>];
-export function useState<T>(initial?: T, debugKey?: string): [T, StateHookSetter<T>] {
-  const { cursor, byCursor } = renderingInstance.hooks.state;
-
-  if (byCursor[cursor] === undefined) {
-    byCursor[cursor] = {
-      value: initial,
-      nextValue: initial,
-      setter: ((componentInstance) => (newValue: ((current: T) => T) | T) => {
-        if (typeof newValue === 'function') {
-          newValue = (newValue as (current: T) => T)(byCursor[cursor].value);
-        }
-
-        if (byCursor[cursor].nextValue === newValue) {
-          return;
-        }
-
-        byCursor[cursor].nextValue = newValue;
-
-        instancesPendingUpdate.add(componentInstance);
-        runUpdatePassOnRaf();
-
-        if (DEBUG_MORE) {
-          if (componentInstance.name !== 'TeactNContainer') {
-            // eslint-disable-next-line no-console
-            console.log(
-              '[Teact.useState]',
-              componentInstance.name,
-              // `componentInstance.Component` may be set to `null` by GC helper
-              componentInstance.Component && (componentInstance.Component as FC_withDebug).DEBUG_contentComponentName
-                ? `> ${(componentInstance.Component as FC_withDebug).DEBUG_contentComponentName}`
-                : '',
-              `State update at cursor #${cursor}${debugKey ? ` (${debugKey})` : ''}, next value: `,
-              byCursor[cursor].nextValue,
-            );
-          }
-        }
-      })(renderingInstance),
-    };
-  }
-
-  renderingInstance.hooks.state.cursor++;
-
-  return [
-    byCursor[cursor].value,
-    byCursor[cursor].setter,
-  ];
-}
-
-function useEffectBase(
-  isLayout: boolean,
-  effect: Effect,
-  dependencies?: readonly any[],
-  debugKey?: string,
-) {
-  const { cursor, byCursor } = renderingInstance.hooks.effects;
-  const componentInstance = renderingInstance;
-
-  const runEffectCleanup = () => safeExec(() => {
-    const { cleanup } = byCursor[cursor];
-    if (!cleanup) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    let DEBUG_startAt: number | undefined;
-    if (DEBUG) {
-      DEBUG_startAt = performance.now();
-    }
-
-    cleanup();
-
-    if (DEBUG) {
-      const duration = performance.now() - DEBUG_startAt!;
-      const componentName = componentInstance.name;
-      if (duration > DEBUG_EFFECT_THRESHOLD) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[Teact] Slow cleanup at effect cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`,
-        );
-      }
-    }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error in effect cleanup at cursor #${cursor} in ${componentInstance.name}`);
-  }, () => {
-    byCursor[cursor].cleanup = undefined;
-  });
-
-  const runEffect = () => safeExec(() => {
-    if (!componentInstance.isMounted) {
-      return;
-    }
-
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    let DEBUG_startAt: number | undefined;
-    if (DEBUG) {
-      DEBUG_startAt = performance.now();
-    }
-
-    const result = effect();
-    if (typeof result === 'function') {
-      byCursor[cursor].cleanup = result;
-    }
-
-    if (DEBUG) {
-      const duration = performance.now() - DEBUG_startAt!;
-      const componentName = componentInstance.name;
-      if (duration > DEBUG_EFFECT_THRESHOLD) {
-        // eslint-disable-next-line no-console
-        console.warn(`[Teact] Slow effect at cursor #${cursor}: ${componentName}, ${Math.round(duration)} ms`);
-      }
-    }
-  }, () => {
-    // eslint-disable-next-line no-console
-    console.error(`[Teact] Error in effect at cursor #${cursor} in ${componentInstance.name}`);
-  });
-
-  function schedule() {
-    const effectId = `${componentInstance.id}_${cursor}`;
-
-    if (isLayout) {
-      pendingLayoutCleanups.set(effectId, runEffectCleanup);
-      pendingLayoutEffects.set(effectId, runEffect);
-    } else {
-      pendingCleanups.set(effectId, runEffectCleanup);
-      pendingEffects.set(effectId, runEffect);
-    }
-
-    runUpdatePassOnRaf();
-  }
-
-  if (dependencies && byCursor[cursor]?.dependencies) {
-    if (dependencies.some((dependency, i) => dependency !== byCursor[cursor].dependencies![i])) {
-      if (debugKey) {
-        const causedBy = dependencies.reduce((res, newValue, i) => {
-          const prevValue = byCursor[cursor].dependencies![i];
-          if (newValue !== prevValue) {
-            res.push(`${i}: ${prevValue} => ${newValue}`);
-          }
-
-          return res;
-        }, []);
-
-        // eslint-disable-next-line no-console
-        console.log(`[Teact] Effect "${debugKey}" caused by dependencies.`, causedBy.join(', '));
-      }
-
-      schedule();
-    }
-  } else {
-    if (debugKey) {
-      // eslint-disable-next-line no-console
-      console.log(`[Teact] Effect "${debugKey}" caused by missing dependencies.`);
-    }
-
-    schedule();
-  }
-
-  const isFirstRun = !byCursor[cursor];
-
-  byCursor[cursor] = {
-    ...byCursor[cursor],
-    dependencies,
-    schedule,
-  };
-
-  function setupSignals() {
-    const cleanups = dependencies?.filter(isSignal).map((signal) => signal.subscribe(() => {
-      byCursor[cursor].schedule();
-    }));
-
-    if (!cleanups?.length) {
-      return undefined;
-    }
-
-    return () => {
-      cleanups.forEach((cleanup) => cleanup());
-    };
-  }
-
-  if (isFirstRun) {
-    byCursor[cursor].releaseSignals = setupSignals();
-  }
-
-  renderingInstance.hooks.effects.cursor++;
-}
-
-export function useEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
-  return useEffectBase(false, effect, dependencies, debugKey);
-}
-
-export function useLayoutEffect(effect: Effect, dependencies?: readonly any[], debugKey?: string) {
-  return useEffectBase(true, effect, dependencies, debugKey);
-}
-
-export function useMemo<T extends any>(resolver: () => T, dependencies: any[], debugKey?: string): T {
-  const { cursor, byCursor } = renderingInstance.hooks.memos;
-  let { value } = byCursor[cursor] || {};
-
-  if (
-    byCursor[cursor] === undefined
-    || dependencies.length !== byCursor[cursor].dependencies.length
-    || dependencies.some((dependency, i) => dependency !== byCursor[cursor].dependencies[i])
-  ) {
-    if (DEBUG && debugKey) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `[Teact.useMemo] ${renderingInstance.name} (${debugKey}): Update is caused by:`,
-        byCursor[cursor]
-          ? getUnequalProps(byCursor[cursor].dependencies, dependencies).join(', ')
-          : '[first render]',
-      );
-    }
-
-    value = resolver();
-  }
-
-  byCursor[cursor] = {
-    value,
-    dependencies,
-  };
-
-  renderingInstance.hooks.memos.cursor++;
-
-  return value;
-}
-
-export function useCallback<F extends AnyFunction>(newCallback: F, dependencies: any[], debugKey?: string): F {
-  // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-  return useMemo(() => newCallback, dependencies, debugKey);
-}
-
-export function useRef<T>(initial: T): { current: T };
-export function useRef<T>(): { current: T | undefined }; // TT way (empty is `undefined`)
-export function useRef<T>(initial: null): { current: T | null }; // React way (empty is `null`)
-// eslint-disable-next-line no-null/no-null
-export function useRef<T>(initial?: T | null) {
-  const { cursor, byCursor } = renderingInstance.hooks.refs;
-  if (!byCursor[cursor]) {
-    byCursor[cursor] = {
-      current: initial,
-    };
-  }
-
-  renderingInstance.hooks.refs.cursor++;
-
-  return byCursor[cursor];
-}
-
-export function memo<T extends FC>(Component: T, debugKey?: string) {
-  return function TeactMemoWrapper(props: Props) {
-    // eslint-disable-next-line react-hooks-static-deps/exhaustive-deps
-    return useMemo(() => createElement(Component, props), Object.values(props), debugKey);
-  } as T;
-}
+export {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  memo,
+} from "react";
 
 export default {
   createElement,
