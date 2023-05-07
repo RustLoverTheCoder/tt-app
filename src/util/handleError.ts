@@ -4,7 +4,7 @@ import { getAllMultitabTokens } from './establishMultitabRole';
 import { IS_MULTITAB_SUPPORTED } from './windowEnvironment';
 
 // eslint-disable-next-line prefer-destructuring
-const APP_ENV = process.env.APP_ENV;
+const APP_ENV = import.meta.env.APP_ENV;
 
 window.addEventListener('error', handleErrorEvent);
 window.addEventListener('unhandledrejection', handleErrorEvent);
