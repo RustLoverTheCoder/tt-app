@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import React, { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
+import { useEffect, useLayoutEffect, useRef } from '../../lib/teact/teact';
 import { addExtraClass, removeExtraClass, toggleExtraClass } from '../../lib/teact/teact-dom';
 import { requestMutation, requestForcedReflow } from '../../lib/fasterdom/fasterdom';
 
@@ -302,7 +302,7 @@ function Transition({
   const contents = renderKeys.map((key) => {
     const render = renders[key];
     if (!render) {
-      return undefined;
+      return null;
     }
 
     const rendered = typeof render === 'function'
