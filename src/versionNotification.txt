@@ -1,0 +1,25 @@
+**Telegram Web A was updated to version 1.61**
+
+[🤩](customEmoji:5373026167722876724) **What’s New**
+
+• Shareable Chat Folders – Your chat folders can now be shared with friends or colleagues – adding the folder and **joining all its chats** in one tap.
+
+• Power Saving Mode – You can **extend battery life** and **improve performance** by turning on Power Saving Mode or individually disabling autoplay, animations and effects in __Settings > Animations and Performance__.
+
+• Better Bots – Telegram bots can completely replace any website. These bots can now be launched **in any chat** – try typing [@DurgerKingBot](https://t.me/DurgerKingBot) (followed by a space) in any chat, or posting [this link](https://t.me/DurgerKingBot/menu).
+
+• Enhanced Design – Enjoy transparent layers with **beautiful blur effects** when selecting emoji, stickers, reactions and statuses. Sending messages also has a satisfying **new animation**.
+
+• Infinite Reactions – Telegram Premium users can pick reactions from an infinite selection of custom emoji. They can also use **up to 3 reactions** on any message to combine multiple emotions. [👍](customEmoji:5469770542288478598)[🔥](customEmoji:5420315771991497307)[❤️](customEmoji:5449505950283078474)
+
+• Preview in Media Viewer – Scrubbing through videos now shows a **thumbnail preview** to easily find specific scenes.
+
+• Group Chat Improvements – Create groups with **only yourself** or restrict anyone from adding you directly to groups (via __Settings > Privacy and Security > Group and Channels > Nobody__).
+
+• Send When Online – By right-clicking the Send button, you can schedule a message to be sent when the recipient comes online.
+
+[😍](customEmoji:5372886001465170842) **What’s Better**
+
+• As usual, we've added a pack of optimizations and performance improvements. If you ever run into an issue with the app, be sure to [report it](https://bugs.telegram.org/?tag_ids=41&sort=time) on the Bugs and Suggestions Platform.
+
+🦄 **We also welcome** you to join our official channels in **[English](https://t.me/webachannel)** and **[Russian](https://t.me/webachannelru)** — where we post app updates and share our experiences building one of the world’s most feature-rich web applications.
